@@ -1,0 +1,39 @@
+#!/bin/bash
+
+function usage() {
+  echo >&2 "Usage:"
+  echo >&2 "  ./up [OPTIONS]"
+}
+
+function log() {
+  local msg=$1
+  local opts=$2
+  local time=`date +%H:%M:%S`
+  echo $opts "$time $msg"
+}
+
+if vagrant status | grep -q 'not created'; then
+  log 'Installing Chef cookbook dependencies with Berkshelf...'
+  rm -f Berksfile.lock
+  berks install -p cookbooks/
+  echo
+
+  log 'Using Vagrant to spin up EC2 instances...'
+  vagrant up --provider=aws --no-provision
+
+log "If there's an error message in red above saying 'sudo: sorry, you must have a tty to run sudo', just ignore it. It's harmless."
+fi
+
+log 'Running Vagrant to provision EC2 instances...'
+vagrant provision
+
+if [ $? -eq 0 ]; then
+  log 'Done!'
+  echo 'Connect to the MongoDB instance in EC2 by running:'
+  echo
+  echo '  vagrant ssh mongodb'
+  echo
+  echo 'Connect to the Benchmark data set loader instance in EC2 by running:'
+  echo
+  echo '  vagrant ssh benchmark'
+fi
