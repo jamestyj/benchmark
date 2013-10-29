@@ -1,0 +1,43 @@
+{
+  "sources": {
+    "aws": {
+      "locked_version": "0.101.6"
+    },
+    "delayed_evaluator": {
+      "locked_version": "0.2.0"
+    },
+    "ebs": {
+      "locked_version": "0.3.6",
+      "git": "git://github.com/jamestyj/chef-ebs.git",
+      "ref": "ddc3099925b2e9c7a6ff820c0fabc57db25e82c3"
+    },
+    "mongodb": {
+      "locked_version": "0.13.4",
+      "git": "git://github.com/edelight/chef-mongodb.git",
+      "ref": "a87ecb5d85040f78aff3b870b0c2d171e0544c45"
+    },
+    "mosh": {
+      "locked_version": "0.3.0",
+      "git": "git://github.com/jtimberman/mosh-cookbook",
+      "ref": "36d71e960be7be16031ae7352261be40a17e0d98"
+    },
+    "python": {
+      "locked_version": "1.4.0"
+    },
+    "yum": {
+      "locked_version": "2.3.4"
+    },
+    "ulimit": {
+      "locked_version": "0.3.2"
+    },
+    "apt": {
+      "locked_version": "2.2.0"
+    },
+    "runit": {
+      "locked_version": "1.3.0"
+    },
+    "build-essential": {
+      "locked_version": "1.4.2"
+    }
+  }
+}
