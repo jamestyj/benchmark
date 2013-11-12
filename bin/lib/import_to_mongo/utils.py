@@ -23,16 +23,12 @@
 import datetime
 import locale
 import sys
-import threading
+import os
 
 def log(msg):
-    """Uses sys.stdout.write instead of print to be 'thread-safe'"""
-    thread_name = threading.current_thread().name
-    timestamp   = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    if thread_name == 'MainThread':
-        sys.stdout.write('%s %s\n' % (timestamp, msg))
-    else:
-        sys.stdout.write('%s %s %s\n' % (timestamp, thread_name, msg))
+    pid = os.getpid()
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print('%s PID-%d %s' % (timestamp, pid, msg))
 
 def num_fmt(number):
     locale.setlocale(locale.LC_ALL, 'en_US')
