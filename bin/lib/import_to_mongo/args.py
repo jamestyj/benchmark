@@ -35,17 +35,11 @@ The data set is imported into MongoDB from one of the following sources:
      bottleneck is often the network when downloading from S3.
 
   2) Directly from Amazon S3 (default).
-     This eliminates the need to download the entire data set (of a specific
-     size) before running the import. It's faster if you will only intend to
-     import once and uses significant less disk space as data is imported
-     on-the-fly.
-     The number of download processes (default 1) is configurable via the
-     --download_processes option. Downloads and imports are done in different
-     processes so they do not block each other, though the bottleneck is often
-     still on the download side, depending on your setup and network.
-
-  The number of import processes (default 1) is configurable for both cases via
-  the --import_processes option.
+     This eliminates the need to download the entire data set before running
+     the import. It's faster if you will only intend to import once and uses
+     significant less disk space as data is imported on-the-fly.
+     The number of worker processes (default 1) can be changed via the
+     --workers option.
 
 Note that because MongoDB does not support joins, the schema for the
 'uservisits' collection (table in SQL terms) includes the 'pageRank' attribute
@@ -62,6 +56,8 @@ See README.md for details.
             help="use local (pre-downloaded) files instead of Amazon S3")
     parser.add_argument('--verbose', action='store_true', default=False,
             help="enable verbose logging (default: false)")
+    parser.add_argument('--workers', type=int, default=1,
+            help="number of worker processes (default: 1)")
 
     group = parser.add_argument_group('MongoDB options')
     group.add_argument('--host', default='localhost',
@@ -74,14 +70,6 @@ See README.md for details.
             help='drop collection before importing (default: false)')
     parser.add_argument_group(group)
 
-    group = parser.add_argument_group('Threading options')
-    group.add_argument('--download_processes', type=int, default=1,
-            help="number of download processes (default: 1)")
-    group.add_argument('--import_processes', type=int, default=1,
-            help="number of import processes (default: 1)")
-    group.add_argument('--separate_processes', action='store_true',
-            default=False, help="use separate download and import processes (default: false")
-    parser.add_argument_group(group)
 
     group = parser.add_argument_group('Additional options')
     group.add_argument('--batch_size', type=int, default=500,
@@ -96,12 +84,4 @@ See README.md for details.
             help='use only uservisits data set (default: false)')
     parser.add_argument_group(group)
 
-    opts = parser.parse_args()
-
-    if opts.separate_processes:
-        print("Using %d processes for both download and import" %
-                opts.download_processes)
-    else:
-        print("Using %d download and %d import processes" % (opts.download_processes,
-                opts.import_processes))
-    return opts
+    return parser.parse_args()
