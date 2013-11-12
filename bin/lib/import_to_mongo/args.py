@@ -39,13 +39,13 @@ The data set is imported into MongoDB from one of the following sources:
      size) before running the import. It's faster if you will only intend to
      import once and uses significant less disk space as data is imported
      on-the-fly.
-     The number of download threads (default 1) is configurable via the
-     --download_threads option. Downloads and imports are done in different
-     threads so they do not block each other, though the bottleneck is often
+     The number of download processes (default 1) is configurable via the
+     --download_processes option. Downloads and imports are done in different
+     processes so they do not block each other, though the bottleneck is often
      still on the download side, depending on your setup and network.
 
-  The number of import threads (default 1) is configurable for both cases via
-  the --import_threads option.
+  The number of import processes (default 1) is configurable for both cases via
+  the --import_processes option.
 
 Note that because MongoDB does not support joins, the schema for the
 'uservisits' collection (table in SQL terms) includes the 'pageRank' attribute
@@ -75,12 +75,12 @@ See README.md for details.
     parser.add_argument_group(group)
 
     group = parser.add_argument_group('Threading options')
-    group.add_argument('--download_threads', type=int, default=1,
-            help="number of download threads (default: 1)")
-    group.add_argument('--import_threads', type=int, default=1,
-            help="number of import threads (default: 1)")
-    group.add_argument('--separate_threads', action='store_true',
-            default=False, help="use separate download and import threads (default: false")
+    group.add_argument('--download_processes', type=int, default=1,
+            help="number of download processes (default: 1)")
+    group.add_argument('--import_processes', type=int, default=1,
+            help="number of import processes (default: 1)")
+    group.add_argument('--separate_processes', action='store_true',
+            default=False, help="use separate download and import processes (default: false")
     parser.add_argument_group(group)
 
     group = parser.add_argument_group('Additional options')
@@ -98,10 +98,10 @@ See README.md for details.
 
     opts = parser.parse_args()
 
-    if opts.separate_threads:
-        print("Using %d threads for both download and import" %
-                opts.download_threads)
+    if opts.separate_processes:
+        print("Using %d processes for both download and import" %
+                opts.download_processes)
     else:
-        print("Using %d download and %d import threads" % (opts.download_threads,
-                opts.import_threads))
+        print("Using %d download and %d import processes" % (opts.download_processes,
+                opts.import_processes))
     return opts
