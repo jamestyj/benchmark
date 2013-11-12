@@ -21,9 +21,7 @@ if vagrant status | grep -q 'not created'; then
   log 'Using Vagrant to spin up EC2 instances...'
   vagrant up --provider=aws --no-provision
 
-# log "If there's an error message in red above saying 'sudo: sorry, you must have a tty to run sudo', just ignore it. It's harmless."
-# log 'Sleep 20 secs to avoid "chef-solo not found" race condition...'
-# sleep 20
+log "If there's an error message in red above saying 'sudo: sorry, you must have a tty to run sudo', just ignore it. It's harmless."
 fi
 
 log 'Running Vagrant to provision EC2 instances...'
