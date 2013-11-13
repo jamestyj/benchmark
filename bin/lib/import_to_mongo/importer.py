@@ -13,8 +13,7 @@ class Importer:
     def __init__(self, db, opts):
         self.db   = db
         self.opts = opts
-        self.download_queue = multiprocessing.Queue()
-        self.import_queue   = multiprocessing.Queue()
+        self.queue = multiprocessing.Queue()
 
     def import_data_set(self, data_set_name):
         collection_name = self._get_collection_name(data_set_name)
@@ -32,35 +31,36 @@ class Importer:
             for fname in self._get_files(data_set_name):
                 with open(fname, 'r') as deflate_file:
                     deflated_csv = deflate_file.read()
-                self.import_queue.put((fname.split('/')[-1], data_set_name, deflated_csv))
-            for _ in xrange(self.opts.workers):
-                process = multiprocessing.Process(target=self._import_worker)
-                process.start()
-
+                self.queue.put((fname.split('/')[-1], data_set_name, deflated_csv))
+            worker_function = self._import_worker
         else:
-            for _ in xrange(self.opts.workers):
-                process = multiprocessing.Process(thread=self._import_worker)
-                process.start()
-
             bucket = boto.connect_s3().get_bucket('big-data-benchmark')
-            path   = "pavlo/text-deflate/%s/%s/" % ( self.opts.size, data_set_name)
+            path   = "pavlo/text-deflate/%s/%s/" % (self.opts.size, data_set_name)
             for s3_key in bucket.get_all_keys(prefix=path):
-                self.download_queue.put(s3_key)
+                self.queue.put(s3_key)
+            worker_function = self._download_and_import_worker
+
+        for _ in xrange(self.opts.workers):
+            process = multiprocessing.Process(target=worker_function)
+            process.start()
+            process.join()
 
     def _import_worker(self):
         while True:
             try:
-                (file_name, data_set_name, deflated_csv) = self.import_queue.get(block=False)
+                (file_name, data_set_name, deflated_csv) = self.queue.get(block=False)
             except Queue.Empty:
                 break
             ImportWorker(self.db, self.opts, file_name, data_set_name, deflated_csv)
 
     def _download_and_import_worker(self):
         while True:
-            s3_key = self.download_queue.get()
+            try:
+                s3_key = self.queue.get(block=False)
+            except Queue.Empty:
+                break
             (file_name, data_set_name, deflated_csv) = DownloadWorker(self.opts, s3_key).get_file()
             ImportWorker(self.db, self.opts, file_name, data_set_name, deflated_csv)
-            self.download_queue.task_done()
 
     def _get_files(self, data_set_name):
         path  = 'data/%s/%s/*.deflate' % (self.opts.size, data_set_name)
