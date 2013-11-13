@@ -13,7 +13,7 @@ class Importer:
     def __init__(self, db, opts):
         self.db   = db
         self.opts = opts
-        self.queue = multiprocessing.Queue()
+        self.queue = multiprocessing.JoinableQueue()
 
     def import_data_set(self, data_set_name):
         collection_name = self._get_collection_name(data_set_name)
@@ -43,7 +43,8 @@ class Importer:
         for _ in xrange(self.opts.workers):
             process = multiprocessing.Process(target=worker_function)
             process.start()
-            process.join()
+
+        self.queue.join()
 
     def _import_worker(self):
         while True:
@@ -52,6 +53,7 @@ class Importer:
             except Queue.Empty:
                 break
             ImportWorker(self.db, self.opts, file_name, data_set_name, deflated_csv)
+            self.queue.task_done()
 
     def _download_and_import_worker(self):
         while True:
@@ -61,6 +63,7 @@ class Importer:
                 break
             (file_name, data_set_name, deflated_csv) = DownloadWorker(self.opts, s3_key).get_file()
             ImportWorker(self.db, self.opts, file_name, data_set_name, deflated_csv)
+            self.queue.task_done()
 
     def _get_files(self, data_set_name):
         path  = 'data/%s/%s/*.deflate' % (self.opts.size, data_set_name)
